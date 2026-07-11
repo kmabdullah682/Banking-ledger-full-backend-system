@@ -7,10 +7,9 @@ const ledgerSchema = new mongoose.Schema(
       required: true,
     },
 
-    accountId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Account",
-      required: [true, "Account reference is required for a transaction"],
+    accountNumber: {
+      type: String,
+      required: [true, "Account number string is required for a transaction"],
       index: true,
     },
 
