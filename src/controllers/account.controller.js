@@ -134,4 +134,49 @@ const verifyBalance = async (req, res) => {
   }
 };
 
-export { createAccount, getAllAccount, verifyBalance };
+const statement = async (req, res) => {
+  const accountNumber = req.params.accountNumber;
+
+  try {
+    if (!accountNumber) {
+      return res.status(400).json({
+        message: "please provide your account number to get the ledgers",
+        success: false,
+      });
+    }
+
+    const account = await AccountModel.findOne({ accountNumber });
+
+    if (!account) {
+      return res.status(404).json({
+        message:
+          "account not found please create an account to get the ledgers",
+        success: false,
+      });
+    }
+
+    const ledgers = await ledgerModel
+      .find({ accountNumber })
+      .select("-_id -createdAt -updatedAt -__v ");
+
+    if (!ledgers) {
+      return res.status(404).json({
+        message: "please make transactions to get the ledgers data",
+        success: false,
+      });
+    }
+
+    res.status(200).json({
+      message: "ledgers fetched successfully",
+      success: true,
+      ledgers,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error" + error,
+      success: false,
+    });
+  }
+};
+
+export { createAccount, getAllAccount, verifyBalance, statement };
