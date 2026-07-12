@@ -1,4 +1,5 @@
 import AccountModel from "../models/accounts.models.js";
+import ledgerModel from "../models/ledger.models.js";
 
 const createAccount = async (req, res) => {
   const { userId, accountType, currency, status } = req.body;
@@ -71,4 +72,66 @@ const getAllAccount = async (req, res) => {
   }
 };
 
-export { createAccount, getAllAccount };
+const verifyBalance = async (req, res) => {
+  const accountNumber = req.params.accountNumber;
+
+  try {
+    if (!accountNumber) {
+      return res.status(400).json({
+        message: "please provide your accountNumber",
+        success: false,
+      });
+    }
+
+    const account = await AccountModel.findOne({ accountNumber });
+
+    if (!account) {
+      return res.status(404).json({
+        message:
+          "account not found please create one account to audit and verify",
+        success: false,
+      });
+    }
+
+    const debitLedgers = await ledgerModel.find({
+      accountNumber,
+      type: "debit",
+    });
+    const creditLedgers = await ledgerModel.find({
+      accountNumber,
+      type: "credit",
+    });
+
+    const totalDebits = debitLedgers.reduce(
+      (sum, ledger) => sum + ledger.amount,
+      0,
+    );
+    const totalCredits = creditLedgers.reduce(
+      (sum, ledger) => sum + ledger.amount,
+      0,
+    );
+
+    const testBalance = totalCredits - totalDebits;
+
+    if (account.balance !== testBalance) {
+      return res.status(400).json({
+        message:
+          "There is an financial transaction issue in your account balance we will suspense that and fix that soon!",
+        success: false,
+      });
+    }
+
+    res.status(200).json({
+      message: "Balance verified",
+      success: true,
+      balance: account.balance,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error" + error,
+      success: false,
+    });
+  }
+};
+
+export { createAccount, getAllAccount, verifyBalance };
