@@ -121,6 +121,14 @@ const withdraw = async (req, res) => {
       });
     }
 
+    if (account.balance !== amount) {
+      return res.status(400).json({
+        message:
+          "insufficient balance please withdraw at least equal to the balance",
+        success: false,
+      });
+    }
+
     if (account.accountType === "savings") {
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
