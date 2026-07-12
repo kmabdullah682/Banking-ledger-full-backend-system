@@ -121,7 +121,7 @@ const withdraw = async (req, res) => {
       });
     }
 
-    if (account.balance !== amount) {
+    if (account.balance < amount) {
       return res.status(400).json({
         message:
           "insufficient balance please withdraw at least equal to the balance",
